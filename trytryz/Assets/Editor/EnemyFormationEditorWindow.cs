@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -355,7 +355,7 @@ public class EnemyFormationEditorWindow : EditorWindow
         {
             int hid = _heroIds[i];
             var h = _heroDict[hid];
-            string label = $"[{h.cost}费] {h.name} ({h.job} | HP:{h.hp} ATK:{h.atk})";
+            string label = "[人口" + h.cost + "] " + h.name + " (" + h.job.Replace("/", "+") + " | HP:" + h.hp + " ATK:" + h.atk + ")";
             int c = col, r = row;
             menu.AddItem(new GUIContent(label), false, () => { _editGrid[c, r] = hid; _hasUnsavedChanges = true; });
         }
