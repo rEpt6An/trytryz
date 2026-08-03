@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -39,7 +40,7 @@ public class UIPanelBuilder
         rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
         rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
 
-        // --- Commander (top-right) ---
+        // Commander (top-right)
         var cmd = GetOrCreateChild(hud.transform, "CommanderSection");
         SetAnchor(cmd.GetComponent<RectTransform>(), 1, 1, 1, 1);
         cmd.GetComponent<RectTransform>().pivot = new Vector2(1, 1);
@@ -56,12 +57,12 @@ public class UIPanelBuilder
 
         var hpGO = GetOrCreateChild(cmd.transform, "HPText");
         SetAnchorStretch(hpGO.GetComponent<RectTransform>(), 0, 0, 1, 0.3f);
-        var hpTxt = hpGO.GetOrAddComponent<Text>();
-        hpTxt.text = "15"; hpTxt.font = GetFont(); hpTxt.fontSize = 28;
-        hpTxt.fontStyle = FontStyle.Bold; hpTxt.alignment = TextAnchor.MiddleCenter;
+        var hpTxt = hpGO.GetOrAddComponent<TextMeshProUGUI>();
+        hpTxt.text = "15"; hpTxt.font = GetTMPFont(); hpTxt.fontSize = 28;
+        hpTxt.fontStyle = FontStyles.Bold; hpTxt.alignment = TextAlignmentOptions.Center;
         hpTxt.color = new Color(1f, 0.3f, 0.3f);
 
-        // --- Gold (right of commander) ---
+        // Gold (right of commander)
         var gold = GetOrCreateChild(hud.transform, "GoldSection");
         SetAnchor(gold.GetComponent<RectTransform>(), 1, 1, 1, 1);
         gold.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
@@ -74,28 +75,28 @@ public class UIPanelBuilder
 
         var gTxtGO = GetOrCreateChild(gold.transform, "GoldText");
         SetAnchorStretch(gTxtGO.GetComponent<RectTransform>(), 0.35f, 0.55f, 1, 0.9f);
-        var gTxt = gTxtGO.GetOrAddComponent<Text>();
-        gTxt.text = "0"; gTxt.font = GetFont(); gTxt.fontSize = 32;
-        gTxt.fontStyle = FontStyle.Bold; gTxt.alignment = TextAnchor.MiddleLeft;
+        var gTxt = gTxtGO.GetOrAddComponent<TextMeshProUGUI>();
+        gTxt.text = "0"; gTxt.font = GetTMPFont(); gTxt.fontSize = 32;
+        gTxt.fontStyle = FontStyles.Bold; gTxt.alignment = TextAlignmentOptions.Left;
         gTxt.color = new Color(1f, 0.85f, 0.2f);
 
         var incGO = GetOrCreateChild(gold.transform, "IncomeText");
         SetAnchorStretch(incGO.GetComponent<RectTransform>(), 0, 0.15f, 1, 0.5f);
-        var incTxt = incGO.GetOrAddComponent<Text>();
-        incTxt.text = "+0 / turn"; incTxt.font = GetFont(); incTxt.fontSize = 16;
-        incTxt.alignment = TextAnchor.MiddleCenter; incTxt.color = new Color(0.6f, 1f, 0.6f);
+        var incTxt = incGO.GetOrAddComponent<TextMeshProUGUI>();
+        incTxt.text = "+0 / turn"; incTxt.font = GetTMPFont(); incTxt.fontSize = 16;
+        incTxt.alignment = TextAlignmentOptions.Center; incTxt.color = new Color(0.6f, 1f, 0.6f);
 
-        // --- Day/Round (top-center) ---
+        // Day/Round (top-center)
         var dayGO = GetOrCreateChild(hud.transform, "DayRoundText");
         var drt = dayGO.GetComponent<RectTransform>();
         drt.anchorMin = new Vector2(0.5f, 1); drt.anchorMax = new Vector2(0.5f, 1);
         drt.pivot = new Vector2(0.5f, 1); drt.anchoredPosition = new Vector2(0, -20);
         drt.sizeDelta = new Vector2(300, 40);
-        var dayTxt = dayGO.GetOrAddComponent<Text>();
-        dayTxt.text = "Day 1  Round 1"; dayTxt.font = GetFont();
-        dayTxt.fontSize = 22; dayTxt.alignment = TextAnchor.MiddleCenter; dayTxt.color = Color.white;
+        var dayTxt = dayGO.GetOrAddComponent<TextMeshProUGUI>();
+        dayTxt.text = "Day 1  Round 1"; dayTxt.font = GetTMPFont();
+        dayTxt.fontSize = 22; dayTxt.alignment = TextAlignmentOptions.Center; dayTxt.color = Color.white;
 
-        // --- Warehouse Button (bottom-right) ---
+        // Warehouse Button (bottom-right)
         var whBtn = GetOrCreateChild(hud.transform, "WarehouseButton");
         var wbrt = whBtn.GetComponent<RectTransform>();
         wbrt.anchorMin = new Vector2(1, 0); wbrt.anchorMax = new Vector2(1, 0);
@@ -105,9 +106,9 @@ public class UIPanelBuilder
         whBtn.GetOrAddComponent<Button>();
         var whLabel = GetOrCreateChild(whBtn.transform, "Label");
         Stretch(whLabel.GetComponent<RectTransform>(), 0);
-        var whlTxt = whLabel.GetOrAddComponent<Text>();
-        whlTxt.text = "Warehouse"; whlTxt.font = GetFont(); whlTxt.fontSize = 16;
-        whlTxt.alignment = TextAnchor.MiddleCenter; whlTxt.color = Color.white;
+        var whlTxt = whLabel.GetOrAddComponent<TextMeshProUGUI>();
+        whlTxt.text = "Warehouse"; whlTxt.font = GetTMPFont(); whlTxt.fontSize = 16;
+        whlTxt.alignment = TextAlignmentOptions.Center; whlTxt.color = Color.white;
     }
 
     // ============================================
@@ -122,9 +123,9 @@ public class UIPanelBuilder
 
         var title = GetOrCreateChild(panel.transform, "Title");
         SetAnchorStretch(title.GetComponent<RectTransform>(), 0, 0.88f, 1, 1);
-        var tTxt = title.GetOrAddComponent<Text>();
-        tTxt.text = "Event"; tTxt.font = GetFont(); tTxt.fontSize = 24;
-        tTxt.fontStyle = FontStyle.Bold; tTxt.alignment = TextAnchor.MiddleCenter; tTxt.color = Color.white;
+        var tTxt = title.GetOrAddComponent<TextMeshProUGUI>();
+        tTxt.text = "Event"; tTxt.font = GetTMPFont(); tTxt.fontSize = 24;
+        tTxt.fontStyle = FontStyles.Bold; tTxt.alignment = TextAlignmentOptions.Center; tTxt.color = Color.white;
 
         for (int i = 0; i < 3; i++)
         {
@@ -135,9 +136,9 @@ public class UIPanelBuilder
             opt.GetOrAddComponent<Button>();
             var label = GetOrCreateChild(opt.transform, "Label");
             Stretch(label.GetComponent<RectTransform>(), 8);
-            var lTxt = label.GetOrAddComponent<Text>();
-            lTxt.text = "Option " + (i + 1); lTxt.font = GetFont(); lTxt.fontSize = 18;
-            lTxt.alignment = TextAnchor.MiddleCenter; lTxt.color = Color.white;
+            var lTxt = label.GetOrAddComponent<TextMeshProUGUI>();
+            lTxt.text = "Option " + (i + 1); lTxt.font = GetTMPFont(); lTxt.fontSize = 18;
+            lTxt.alignment = TextAlignmentOptions.Center; lTxt.color = Color.white;
         }
 
         var skip = GetOrCreateChild(panel.transform, "SkipButton");
@@ -146,9 +147,9 @@ public class UIPanelBuilder
         skip.GetOrAddComponent<Button>();
         var sl = GetOrCreateChild(skip.transform, "Label");
         Stretch(sl.GetComponent<RectTransform>(), 0);
-        var slTxt = sl.GetOrAddComponent<Text>();
-        slTxt.text = "Skip"; slTxt.font = GetFont(); slTxt.fontSize = 16;
-        slTxt.alignment = TextAnchor.MiddleCenter; slTxt.color = Color.white;
+        var slTxt = sl.GetOrAddComponent<TextMeshProUGUI>();
+        slTxt.text = "Skip"; slTxt.font = GetTMPFont(); slTxt.fontSize = 16;
+        slTxt.alignment = TextAlignmentOptions.Center; slTxt.color = Color.white;
     }
 
     // ============================================
@@ -163,22 +164,20 @@ public class UIPanelBuilder
 
         var title = GetOrCreateChild(panel.transform, "Title");
         SetAnchorStretch(title.GetComponent<RectTransform>(), 0, 0.92f, 1, 1);
-        var tTxt = title.GetOrAddComponent<Text>();
-        tTxt.text = "Shop"; tTxt.font = GetFont(); tTxt.fontSize = 24;
-        tTxt.fontStyle = FontStyle.Bold; tTxt.alignment = TextAnchor.MiddleCenter; tTxt.color = Color.white;
+        var tTxt = title.GetOrAddComponent<TextMeshProUGUI>();
+        tTxt.text = "Shop"; tTxt.font = GetTMPFont(); tTxt.fontSize = 24;
+        tTxt.fontStyle = FontStyles.Bold; tTxt.alignment = TextAlignmentOptions.Center; tTxt.color = Color.white;
 
-        // Refresh button
         var refresh = GetOrCreateChild(panel.transform, "RefreshButton");
         SetAnchorStretch(refresh.GetComponent<RectTransform>(), 0.02f, 0.86f, 0.18f, 0.95f);
         refresh.GetOrAddComponent<Image>().color = new Color(0.3f, 0.3f, 0.5f);
         refresh.GetOrAddComponent<Button>();
         var rl = GetOrCreateChild(refresh.transform, "Label");
         Stretch(rl.GetComponent<RectTransform>(), 0);
-        var rlTxt = rl.GetOrAddComponent<Text>();
-        rlTxt.text = "Refresh"; rlTxt.font = GetFont(); rlTxt.fontSize = 16;
-        rlTxt.alignment = TextAnchor.MiddleCenter; rlTxt.color = Color.white;
+        var rlTxt = rl.GetOrAddComponent<TextMeshProUGUI>();
+        rlTxt.text = "Refresh"; rlTxt.font = GetTMPFont(); rlTxt.fontSize = 16;
+        rlTxt.alignment = TextAlignmentOptions.Center; rlTxt.color = Color.white;
 
-        // 4 slots (2x2)
         for (int i = 0; i < 4; i++)
         {
             int col = i % 2; int row = i / 2;
@@ -192,21 +191,20 @@ public class UIPanelBuilder
             slot.GetOrAddComponent<Button>();
             var label = GetOrCreateChild(slot.transform, "Label");
             Stretch(label.GetComponent<RectTransform>(), 8);
-            var lTxt = label.GetOrAddComponent<Text>();
-            lTxt.text = "Slot " + (i + 1); lTxt.font = GetFont(); lTxt.fontSize = 18;
-            lTxt.alignment = TextAnchor.MiddleCenter; lTxt.color = Color.white;
+            var lTxt = label.GetOrAddComponent<TextMeshProUGUI>();
+            lTxt.text = "Slot " + (i + 1); lTxt.font = GetTMPFont(); lTxt.fontSize = 18;
+            lTxt.alignment = TextAlignmentOptions.Center; lTxt.color = Color.white;
         }
 
-        // Close
         var close = GetOrCreateChild(panel.transform, "CloseButton");
         SetAnchorStretch(close.GetComponent<RectTransform>(), 0.82f, 0.86f, 0.98f, 0.95f);
         close.GetOrAddComponent<Image>().color = new Color(0.5f, 0.15f, 0.15f);
         close.GetOrAddComponent<Button>();
         var cl = GetOrCreateChild(close.transform, "Label");
         Stretch(cl.GetComponent<RectTransform>(), 0);
-        var clTxt = cl.GetOrAddComponent<Text>();
-        clTxt.text = "X"; clTxt.font = GetFont(); clTxt.fontSize = 16;
-        clTxt.fontStyle = FontStyle.Bold; clTxt.alignment = TextAnchor.MiddleCenter; clTxt.color = Color.white;
+        var clTxt = cl.GetOrAddComponent<TextMeshProUGUI>();
+        clTxt.text = "X"; clTxt.font = GetTMPFont(); clTxt.fontSize = 16;
+        clTxt.fontStyle = FontStyles.Bold; clTxt.alignment = TextAlignmentOptions.Center; clTxt.color = Color.white;
     }
 
     // ============================================
@@ -221,9 +219,9 @@ public class UIPanelBuilder
 
         var title = GetOrCreateChild(panel.transform, "Title");
         SetAnchorStretch(title.GetComponent<RectTransform>(), 0, 0.92f, 1, 1);
-        var tTxt = title.GetOrAddComponent<Text>();
-        tTxt.text = "Warehouse"; tTxt.font = GetFont(); tTxt.fontSize = 20;
-        tTxt.fontStyle = FontStyle.Bold; tTxt.alignment = TextAnchor.MiddleCenter; tTxt.color = Color.white;
+        var tTxt = title.GetOrAddComponent<TextMeshProUGUI>();
+        tTxt.text = "Warehouse"; tTxt.font = GetTMPFont(); tTxt.fontSize = 20;
+        tTxt.fontStyle = FontStyles.Bold; tTxt.alignment = TextAlignmentOptions.Center; tTxt.color = Color.white;
 
         var board = GetOrCreateChild(panel.transform, "WH_Board");
         SetAnchorStretch(board.GetComponent<RectTransform>(), 0.05f, 0.05f, 0.95f, 0.88f);
@@ -242,9 +240,9 @@ public class UIPanelBuilder
                 cell.GetOrAddComponent<Image>().color = new Color(0.15f, 0.15f, 0.2f, 1f);
                 var label = GetOrCreateChild(cell.transform, "Label");
                 Stretch(label.GetComponent<RectTransform>(), 4);
-                var lTxt = label.GetOrAddComponent<Text>();
-                lTxt.text = "[" + x + "," + y + "]"; lTxt.font = GetFont(); lTxt.fontSize = 12;
-                lTxt.alignment = TextAnchor.MiddleCenter; lTxt.color = new Color(0.5f, 0.5f, 0.6f);
+                var lTxt = label.GetOrAddComponent<TextMeshProUGUI>();
+                lTxt.text = "[" + x + "," + y + "]"; lTxt.font = GetTMPFont(); lTxt.fontSize = 12;
+                lTxt.alignment = TextAlignmentOptions.Center; lTxt.color = new Color(0.5f, 0.5f, 0.6f);
             }
         }
 
@@ -254,9 +252,9 @@ public class UIPanelBuilder
         close.GetOrAddComponent<Button>();
         var cl = GetOrCreateChild(close.transform, "Label");
         Stretch(cl.GetComponent<RectTransform>(), 0);
-        var clTxt = cl.GetOrAddComponent<Text>();
-        clTxt.text = "X"; clTxt.font = GetFont(); clTxt.fontSize = 16;
-        clTxt.fontStyle = FontStyle.Bold; clTxt.alignment = TextAnchor.MiddleCenter; clTxt.color = Color.white;
+        var clTxt = cl.GetOrAddComponent<TextMeshProUGUI>();
+        clTxt.text = "X"; clTxt.font = GetTMPFont(); clTxt.fontSize = 16;
+        clTxt.fontStyle = FontStyles.Bold; clTxt.alignment = TextAlignmentOptions.Center; clTxt.color = Color.white;
     }
 
     // ============================================
@@ -269,7 +267,6 @@ public class UIPanelBuilder
         panel.GetOrAddComponent<Image>().color = new Color(0, 0, 0, 0.85f);
         panel.SetActive(false);
 
-        // Enemy board (right side)
         var eBoard = GetOrCreateChild(panel.transform, "EnemyBoard");
         var ebrt = eBoard.GetComponent<RectTransform>();
         ebrt.anchorMin = new Vector2(0.55f, 0.5f); ebrt.anchorMax = new Vector2(0.55f, 0.5f);
@@ -289,13 +286,12 @@ public class UIPanelBuilder
                 cell.GetOrAddComponent<Image>().color = new Color(0.15f, 0.15f, 0.2f, 1f);
                 var label = GetOrCreateChild(cell.transform, "Label");
                 Stretch(label.GetComponent<RectTransform>(), 4);
-                var lTxt = label.GetOrAddComponent<Text>();
-                lTxt.text = ""; lTxt.font = GetFont(); lTxt.fontSize = 12;
-                lTxt.alignment = TextAnchor.MiddleCenter; lTxt.color = new Color(0.5f, 0.5f, 0.6f);
+                var lTxt = label.GetOrAddComponent<TextMeshProUGUI>();
+                lTxt.text = ""; lTxt.font = GetTMPFont(); lTxt.fontSize = 12;
+                lTxt.alignment = TextAlignmentOptions.Center; lTxt.color = new Color(0.5f, 0.5f, 0.6f);
             }
         }
 
-        // Enemy commander
         var eCmd = GetOrCreateChild(panel.transform, "EnemyCommander");
         var ecrt = eCmd.GetComponent<RectTransform>();
         ecrt.anchorMin = new Vector2(0.82f, 0.74f); ecrt.anchorMax = new Vector2(0.82f, 0.74f);
@@ -306,27 +302,25 @@ public class UIPanelBuilder
         epImg.GetOrAddComponent<Image>().color = new Color(0.4f, 0.4f, 0.5f, 1f);
         var ehpGO = GetOrCreateChild(eCmd.transform, "HPText");
         SetAnchorStretch(ehpGO.GetComponent<RectTransform>(), 0, 0, 1, 0.25f);
-        var ehpTxt = ehpGO.GetOrAddComponent<Text>();
-        ehpTxt.text = "?"; ehpTxt.font = GetFont(); ehpTxt.fontSize = 18;
-        ehpTxt.alignment = TextAnchor.MiddleCenter; ehpTxt.color = Color.red;
+        var ehpTxt = ehpGO.GetOrAddComponent<TextMeshProUGUI>();
+        ehpTxt.text = "?"; ehpTxt.font = GetTMPFont(); ehpTxt.fontSize = 18;
+        ehpTxt.alignment = TextAlignmentOptions.Center; ehpTxt.color = Color.red;
 
-        // Result
         var result = GetOrCreateChild(panel.transform, "BattleResult");
         SetAnchorStretch(result.GetComponent<RectTransform>(), 0.35f, 0.45f, 0.65f, 0.55f);
-        var resTxt = result.GetOrAddComponent<Text>();
-        resTxt.text = ""; resTxt.font = GetFont(); resTxt.fontSize = 36;
-        resTxt.fontStyle = FontStyle.Bold; resTxt.alignment = TextAnchor.MiddleCenter; resTxt.color = Color.white;
+        var resTxt = result.GetOrAddComponent<TextMeshProUGUI>();
+        resTxt.text = ""; resTxt.font = GetTMPFont(); resTxt.fontSize = 36;
+        resTxt.fontStyle = FontStyles.Bold; resTxt.alignment = TextAlignmentOptions.Center; resTxt.color = Color.white;
 
-        // Continue button
         var cont = GetOrCreateChild(panel.transform, "ContinueButton");
         SetAnchorStretch(cont.GetComponent<RectTransform>(), 0.4f, 0.2f, 0.6f, 0.28f);
         cont.GetOrAddComponent<Image>().color = new Color(0.2f, 0.4f, 0.2f);
         cont.GetOrAddComponent<Button>();
         var clb = GetOrCreateChild(cont.transform, "Label");
         Stretch(clb.GetComponent<RectTransform>(), 0);
-        var clbTxt = clb.GetOrAddComponent<Text>();
-        clbTxt.text = "Continue"; clbTxt.font = GetFont(); clbTxt.fontSize = 20;
-        clbTxt.alignment = TextAnchor.MiddleCenter; clbTxt.color = Color.white;
+        var clbTxt = clb.GetOrAddComponent<TextMeshProUGUI>();
+        clbTxt.text = "Continue"; clbTxt.font = GetTMPFont(); clbTxt.fontSize = 20;
+        clbTxt.alignment = TextAlignmentOptions.Center; clbTxt.color = Color.white;
     }
 
     // ============================================
@@ -365,9 +359,9 @@ public class UIPanelBuilder
         rt.offsetMax = new Vector2(-margin, -margin);
     }
 
-    static Font GetFont()
+    static TMP_FontAsset GetTMPFont()
     {
-        return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        return Resources.Load<TMP_FontAsset>("Fonts/KaiTi SDF");
     }
 }
 

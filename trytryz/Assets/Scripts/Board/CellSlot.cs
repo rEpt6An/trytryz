@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -9,12 +10,12 @@ public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
 
     public Image background;
     public Image highlightBorder;
-    public Text infoText;
+    public TextMeshProUGUI infoText;
     public GameObject heroCardRoot;
-    public Text heroNameText;
-    public Text heroStatsText;
+    public TextMeshProUGUI heroNameText;
+    public TextMeshProUGUI heroStatsText;
     public Image heroCostBadge;
-    public Text heroCostText;
+    public TextMeshProUGUI heroCostText;
 
     Color _defaultBgColor = new Color(0.18f, 0.18f, 0.22f, 0.9f);
     Color _hoverBgColor = new Color(0.28f, 0.28f, 0.35f, 0.95f);
@@ -116,7 +117,6 @@ public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
     {
         if (highlightBorder != null)
             highlightBorder.gameObject.SetActive(false);
-
         UpdateDisplay();
     }
 }

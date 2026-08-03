@@ -1,12 +1,7 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Board setup — supports two modes:
-///   1. Auto: creates board at runtime (fallback)
-///   2. Manual: finds existing CellSlot children in hierarchy (preferred)
-/// Attach to Canvas.
-/// </summary>
 public class BoardSetup : MonoBehaviour
 {
     [Header("Layout")]
@@ -15,14 +10,13 @@ public class BoardSetup : MonoBehaviour
 
     [Header("References")]
     public BoardController boardController;
-    public Transform boardPanel;        // Parent transform for all cells
+    public Transform boardPanel;
 
     void Awake()
     {
         if (boardController == null)
             boardController = FindObjectOfType<BoardController>();
 
-        // Try manual mode first: find existing cells in hierarchy
         var existingCells = GetComponentsInChildren<CellSlot>();
         if (existingCells != null && existingCells.Length == 9)
         {
@@ -35,7 +29,6 @@ public class BoardSetup : MonoBehaviour
             return;
         }
 
-        // Fallback: auto-create
         Debug.Log("[BoardSetup] Auto mode: creating board at runtime.");
         CreateBoard();
     }
@@ -83,11 +76,11 @@ public class BoardSetup : MonoBehaviour
         // Info text
         var infoGO = MakeUI("InfoText", cellGO.transform);
         StretchMargin(infoGO.GetComponent<RectTransform>(), 4);
-        var infoTxt = infoGO.AddComponent<Text>();
+        var infoTxt = infoGO.AddComponent<TextMeshProUGUI>();
         infoTxt.text = "[" + x + "," + y + "]";
-        infoTxt.font = GetFont();
+        infoTxt.font = GetTMPFont();
         infoTxt.fontSize = 14;
-        infoTxt.alignment = TextAnchor.MiddleCenter;
+        infoTxt.alignment = TextAlignmentOptions.Center;
         infoTxt.color = new Color(0.6f, 0.6f, 0.65f);
 
         // Hero card
@@ -99,18 +92,18 @@ public class BoardSetup : MonoBehaviour
         var nrt = nameGO.GetComponent<RectTransform>();
         nrt.anchorMin = new Vector2(0, 0.55f); nrt.anchorMax = new Vector2(1, 0.95f);
         nrt.offsetMin = Vector2.zero; nrt.offsetMax = Vector2.zero;
-        var nameTxt = nameGO.AddComponent<Text>();
-        nameTxt.font = GetFont(); nameTxt.fontSize = 20;
-        nameTxt.fontStyle = FontStyle.Bold; nameTxt.alignment = TextAnchor.MiddleCenter;
+        var nameTxt = nameGO.AddComponent<TextMeshProUGUI>();
+        nameTxt.font = GetTMPFont(); nameTxt.fontSize = 20;
+        nameTxt.fontStyle = FontStyles.Bold; nameTxt.alignment = TextAlignmentOptions.Center;
         nameTxt.color = Color.white;
 
         var statGO = MakeUI("Stats", cardRoot.transform);
         var srt = statGO.GetComponent<RectTransform>();
         srt.anchorMin = new Vector2(0, 0.15f); srt.anchorMax = new Vector2(1, 0.55f);
         srt.offsetMin = Vector2.zero; srt.offsetMax = Vector2.zero;
-        var statTxt = statGO.AddComponent<Text>();
-        statTxt.font = GetFont(); statTxt.fontSize = 14;
-        statTxt.alignment = TextAnchor.MiddleCenter;
+        var statTxt = statGO.AddComponent<TextMeshProUGUI>();
+        statTxt.font = GetTMPFont(); statTxt.fontSize = 14;
+        statTxt.alignment = TextAlignmentOptions.Center;
         statTxt.color = new Color(0.85f, 0.85f, 0.85f);
 
         var badgeGO = MakeUI("CostBadge", cardRoot.transform);
@@ -123,9 +116,9 @@ public class BoardSetup : MonoBehaviour
 
         var costGO = MakeUI("CostText", badgeGO.transform);
         Stretch(costGO.GetComponent<RectTransform>());
-        var costTxt = costGO.AddComponent<Text>();
-        costTxt.font = GetFont(); costTxt.fontSize = 16;
-        costTxt.fontStyle = FontStyle.Bold; costTxt.alignment = TextAnchor.MiddleCenter;
+        var costTxt = costGO.AddComponent<TextMeshProUGUI>();
+        costTxt.font = GetTMPFont(); costTxt.fontSize = 16;
+        costTxt.fontStyle = FontStyles.Bold; costTxt.alignment = TextAlignmentOptions.Center;
         costTxt.color = Color.white;
 
         // CellSlot
@@ -165,9 +158,11 @@ public class BoardSetup : MonoBehaviour
         rt.offsetMin = new Vector2(m, m); rt.offsetMax = new Vector2(-m, -m);
     }
 
-    Font GetFont() => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+    TMP_FontAsset GetTMPFont()
+    {
+        return Resources.Load<TMP_FontAsset>("Fonts/KaiTi SDF");
+    }
 
-    // Call this from Editor script
     public void BuildInEditor()
     {
         CreateBoard();
