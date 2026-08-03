@@ -361,7 +361,12 @@ public class UIPanelBuilder
 
     static TMP_FontAsset GetTMPFont()
     {
-        return Resources.Load<TMP_FontAsset>("Fonts/KaiTi SDF");
+        TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts & Materials/KaiTi SDF");
+        if (font != null) return font;
+        font = TMP_Settings.defaultFontAsset;
+        if (font != null) return font;
+        Debug.LogWarning("[UIPanelBuilder] KaiTi SDF not found and no TMP default. Text will be invisible.");
+        return null;
     }
 }
 

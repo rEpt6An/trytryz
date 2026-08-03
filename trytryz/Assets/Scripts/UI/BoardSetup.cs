@@ -160,7 +160,12 @@ public class BoardSetup : MonoBehaviour
 
     TMP_FontAsset GetTMPFont()
     {
-        return Resources.Load<TMP_FontAsset>("Fonts/KaiTi SDF");
+        TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts & Materials/KaiTi SDF");
+        if (font != null) return font;
+        font = TMPro.TMP_Settings.defaultFontAsset;
+        if (font != null) return font;
+        Debug.LogWarning("[BoardSetup] KaiTi SDF not found and no TMP default. Text will be invisible.");
+        return null;
     }
 
     public void BuildInEditor()
