@@ -7,6 +7,7 @@ public class BoardController : MonoBehaviour
     public static BoardController Instance { get; private set; }
 
     public const int GridSize = 3;
+    public const int GridStartIndex = 1;
     int[,] _board = new int[GridSize, GridSize];
 
     public int MaxPopulation { get; set; } = 5;
@@ -47,19 +48,27 @@ public class BoardController : MonoBehaviour
         Debug.Log("[BoardController] Loaded " + _heroDict.Count + " heroes from cache.");
     }
 
+    // Convert 1-based cell coordinate to 0-based array index
+    static int ToIdx(int coord) { return coord - GridStartIndex; }
+    static bool InRange(int coord) { return coord >= GridStartIndex && coord < GridStartIndex + GridSize; }
+
     public void RegisterCell(int x, int y, CellSlot cell)
     {
-        if (x < 0 || x >= GridSize || y < 0 || y >= GridSize) return;
-        _cells[x, y] = cell;
+        if (!InRange(x) || !InRange(y)) return;
+        _cells[ToIdx(x), ToIdx(y)] = cell;
     }
 
     public CellSlot GetCell(int x, int y)
     {
-        if (x < 0 || x >= GridSize || y < 0 || y >= GridSize) return null;
-        return _cells[x, y];
+        if (!InRange(x) || !InRange(y)) return null;
+        return _cells[ToIdx(x), ToIdx(y)];
     }
 
-    public int GetHeroAt(int x, int y) { return _board[x, y]; }
+    public int GetHeroAt(int x, int y)
+    {
+        if (!InRange(x) || !InRange(y)) return 0;
+        return _board[ToIdx(x), ToIdx(y)];
+    }
 
     public HeroRow GetHeroData(int heroId)
     {
@@ -67,7 +76,11 @@ public class BoardController : MonoBehaviour
         return row;
     }
 
-    public bool IsCellEmpty(int x, int y) { return _board[x, y] == 0; }
+    public bool IsCellEmpty(int x, int y)
+    {
+        if (!InRange(x) || !InRange(y)) return false;
+        return _board[ToIdx(x), ToIdx(y)] == 0;
+    }
 
     public bool CanPlaceHero(int heroId)
     {
@@ -90,12 +103,13 @@ public class BoardController : MonoBehaviour
 
     public bool PlaceHero(int x, int y, int heroId)
     {
-        if (x < 0 || x >= GridSize || y < 0 || y >= GridSize) return false;
-        if (_board[x, y] != 0) return false;
+        if (!InRange(x) || !InRange(y)) return false;
+        int ix = ToIdx(x), iy = ToIdx(y);
+        if (_board[ix, iy] != 0) return false;
         if (!GodMode && !CanPlaceHero(heroId)) return false;
 
         int cost = GetHeroCost(heroId);
-        _board[x, y] = heroId;
+        _board[ix, iy] = heroId;
         CurrentPopulation += cost;
 
         if (OnHeroPlaced != null) OnHeroPlaced(x, y, heroId);
@@ -107,12 +121,13 @@ public class BoardController : MonoBehaviour
 
     public bool RemoveHero(int x, int y)
     {
-        if (x < 0 || x >= GridSize || y < 0 || y >= GridSize) return false;
-        int heroId = _board[x, y];
+        if (!InRange(x) || !InRange(y)) return false;
+        int ix = ToIdx(x), iy = ToIdx(y);
+        int heroId = _board[ix, iy];
         if (heroId == 0) return false;
 
         int cost = GetHeroCost(heroId);
-        _board[x, y] = 0;
+        _board[ix, iy] = 0;
         CurrentPopulation -= cost;
 
         if (OnHeroRemoved != null) OnHeroRemoved(x, y, heroId);
@@ -124,8 +139,8 @@ public class BoardController : MonoBehaviour
 
     public void ClearBoard()
     {
-        for (int x = 0; x < GridSize; x++)
-            for (int y = 0; y < GridSize; y++)
+        for (int x = GridStartIndex; x < GridStartIndex + GridSize; x++)
+            for (int y = GridStartIndex; y < GridStartIndex + GridSize; y++)
                 RemoveHero(x, y);
     }
 
@@ -135,20 +150,18 @@ public class BoardController : MonoBehaviour
         var heroes = GetAllHeroes();
         if (heroes.Count == 0) return;
 
-        // Build shuffled positions for truly random placement
         int totalCells = GridSize * GridSize;
         int[] posX = new int[totalCells];
         int[] posY = new int[totalCells];
         int idx = 0;
-        for (int x = 0; x < GridSize; x++)
-            for (int y = 0; y < GridSize; y++)
+        for (int x = GridStartIndex; x < GridStartIndex + GridSize; x++)
+            for (int y = GridStartIndex; y < GridStartIndex + GridSize; y++)
             {
                 posX[idx] = x;
                 posY[idx] = y;
                 idx++;
             }
 
-        // Fisher-Yates shuffle
         for (int i = totalCells - 1; i > 0; i--)
         {
             int j = UnityEngine.Random.Range(0, i + 1);
@@ -156,7 +169,6 @@ public class BoardController : MonoBehaviour
             int ty = posY[i]; posY[i] = posY[j]; posY[j] = ty;
         }
 
-        // Fill shuffled positions until population limit
         int placed = 0;
         for (int i = 0; i < totalCells; i++)
         {
@@ -167,7 +179,6 @@ public class BoardController : MonoBehaviour
         }
     }
 
-    // Allow external systems (Debug panel) to force a UI refresh
     public void RefreshDisplay()
     {
         if (OnBoardChanged != null) OnBoardChanged();

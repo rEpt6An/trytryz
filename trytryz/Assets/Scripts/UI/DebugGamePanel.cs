@@ -87,7 +87,7 @@ public class DebugGamePanel : MonoBehaviour
         if (GUILayout.Button("Open Hero List", GUILayout.Height(30)))
         {
             if (HeroPicker.Instance != null)
-                HeroPicker.Instance.OpenForCell(0, 0);
+                HeroPicker.Instance.OpenForCell(1, 1);
             _statusMsg = "Hero picker opened";
         }
         if (GUILayout.Button("Refresh UI", GUILayout.Height(30)))
@@ -105,12 +105,14 @@ public class DebugGamePanel : MonoBehaviour
         GUILayout.EndHorizontal();
         GUILayout.Space(6);
 
-        // Board snapshot
+        // Board snapshot (1-based display)
         GUILayout.Label("-- Board Snapshot --");
-        for (int y = 0; y < 3; y++)
+        int start = BoardController.GridStartIndex;
+        int end = start + BoardController.GridSize;
+        for (int y = start; y < end; y++)
         {
             GUILayout.BeginHorizontal();
-            for (int x = 0; x < 3; x++)
+            for (int x = start; x < end; x++)
             {
                 int heroId = bc.GetHeroAt(x, y);
                 string label;

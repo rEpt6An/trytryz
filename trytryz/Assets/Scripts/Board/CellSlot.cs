@@ -17,6 +17,11 @@ public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
     public Image heroCostBadge;
     public TextMeshProUGUI heroCostText;
 
+    [Header("Progress Bars")]
+    public Image hpBarFill;
+    public Image atkBarFill;
+    public GameObject barsRoot;
+
     Color _defaultBgColor = new Color(0.18f, 0.18f, 0.22f, 0.9f);
     Color _hoverBgColor = new Color(0.28f, 0.28f, 0.35f, 0.95f);
     Color _occupiedBgColor = new Color(0.15f, 0.25f, 0.15f, 0.9f);
@@ -28,13 +33,20 @@ public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
         new Color(0.8f, 0.55f, 0.2f),
     };
 
+    HeroOnBoard _heroOnBoard;
+
     void Start()
     {
+        _heroOnBoard = GetComponent<HeroOnBoard>();
+
         if (BoardController.Instance != null)
             BoardController.Instance.RegisterCell(gridX, gridY, this);
 
         if (highlightBorder != null)
             highlightBorder.gameObject.SetActive(false);
+
+        if (barsRoot != null)
+            barsRoot.SetActive(false);
 
         UpdateDisplay();
     }
@@ -51,6 +63,11 @@ public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
             BoardController.Instance.OnBoardChanged -= UpdateDisplay;
     }
 
+    void Update()
+    {
+        UpdateProgressBars();
+    }
+
     public void UpdateDisplay()
     {
         if (BoardController.Instance == null) return;
@@ -64,6 +81,8 @@ public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
                 infoText.text = "[" + gridX + "," + gridY + "]";
             if (heroCardRoot != null)
                 heroCardRoot.SetActive(false);
+            if (barsRoot != null)
+                barsRoot.SetActive(false);
         }
         else
         {
@@ -81,7 +100,35 @@ public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
                     heroCostBadge.color = _costColors[idx];
                 }
                 if (heroCostText != null) heroCostText.text = hero.cost.ToString();
+                if (barsRoot != null)
+                    barsRoot.SetActive(true);
             }
+        }
+    }
+
+    void UpdateProgressBars()
+    {
+        if (_heroOnBoard == null) return;
+        if (_heroOnBoard.HeroId == 0) return;
+
+        // HP bar
+        if (hpBarFill != null && _heroOnBoard.MaxHp > 0)
+        {
+            float hpRatio = Mathf.Clamp01((float)_heroOnBoard.CurrentHp / _heroOnBoard.MaxHp);
+            hpBarFill.fillAmount = hpRatio;
+            if (hpRatio > 0.6f)
+                hpBarFill.color = new Color(0.2f, 0.8f, 0.2f);
+            else if (hpRatio > 0.3f)
+                hpBarFill.color = new Color(1f, 0.85f, 0.2f);
+            else
+                hpBarFill.color = new Color(1f, 0.25f, 0.25f);
+        }
+
+        // ATK bar (placeholder - will be driven by battle system later)
+        if (atkBarFill != null)
+        {
+            // For now, show full (battle system will control this)
+            atkBarFill.fillAmount = 1f;
         }
     }
 

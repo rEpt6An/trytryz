@@ -19,7 +19,7 @@ public class BattleController : MonoBehaviour
     public List<string> BattleLog { get { return _battleLog; } }
 
     int _roundCount = 0;
-    int _winner = -1; // 0=player, 1=enemy, -1=draw
+    int _winner = -1;
 
     public int RoundCount { get { return _roundCount; } }
     public int Winner { get { return _winner; } }
@@ -28,7 +28,7 @@ public class BattleController : MonoBehaviour
 
     public event System.Action OnBattleStart;
     public event System.Action<string> OnBattleTick;
-    public event System.Action<int, int> OnBattleEnd; // winner, roundCount
+    public event System.Action<int, int> OnBattleEnd;
 
     const int MAX_ROUNDS = 50;
 
@@ -42,9 +42,6 @@ public class BattleController : MonoBehaviour
         Instance = this;
     }
 
-    /// <summary>
-    /// Init battle from player board and enemy formation grid.
-    /// </summary>
     public void InitBattle(int[,] enemyGrid)
     {
         _battleLog.Clear();
@@ -57,10 +54,12 @@ public class BattleController : MonoBehaviour
         var bc = BoardController.Instance;
         if (bc == null) return;
 
-        // Build player heroes from board
-        for (int x = 0; x < 3; x++)
+        // Build player heroes from board (1-based coords)
+        int start = BoardController.GridStartIndex;
+        int end = start + BoardController.GridSize;
+        for (int x = start; x < end; x++)
         {
-            for (int y = 0; y < 3; y++)
+            for (int y = start; y < end; y++)
             {
                 int heroId = bc.GetHeroAt(x, y);
                 if (heroId == 0) continue;
@@ -73,8 +72,8 @@ public class BattleController : MonoBehaviour
                     heroId = heroId,
                     heroName = data.name,
                     team = 0,
-                    gridX = x,
-                    gridY = y,
+                    gridX = x - start,
+                    gridY = y - start,
                     maxHp = data.hp,
                     currentHp = data.hp,
                     atk = data.atk,
@@ -84,7 +83,7 @@ public class BattleController : MonoBehaviour
             }
         }
 
-        // Build enemy heroes from formation grid
+        // Build enemy heroes from formation grid (0-based internally)
         for (int x = 0; x < 3; x++)
         {
             for (int y = 0; y < 3; y++)
@@ -114,9 +113,6 @@ public class BattleController : MonoBehaviour
         Debug.Log("[BattleController] Init: player=" + _playerHeroes.Count + " enemy=" + _enemyHeroes.Count);
     }
 
-    /// <summary>
-    /// Run the full battle simulation and return result.
-    /// </summary>
     public void RunBattle()
     {
         if (_playerHeroes.Count == 0)
@@ -140,7 +136,6 @@ public class BattleController : MonoBehaviour
             _roundCount++;
             ProcessRound();
 
-            // Check win conditions
             int alivePlayer = CountAlive(_playerHeroes);
             int aliveEnemy = CountAlive(_enemyHeroes);
 
@@ -173,7 +168,6 @@ public class BattleController : MonoBehaviour
 
     void ProcessRound()
     {
-        // Collect all alive heroes and sort by cd (lower first)
         var allHeroes = new List<BattleHero>();
         foreach (var h in _playerHeroes)
             if (h.isAlive) allHeroes.Add(h);
@@ -190,8 +184,7 @@ public class BattleController : MonoBehaviour
             var target = FindTarget(attacker);
             if (target == null) continue;
 
-            // Deal damage
-            int damage = Mathf.Max(1, attacker.atk); // min 1 damage
+            int damage = Mathf.Max(1, attacker.atk);
             target.currentHp -= damage;
 
             string msg = "[" + attacker.heroName + "](team" + attacker.team + ")"
@@ -210,10 +203,6 @@ public class BattleController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Find nearest enemy target for attacker.
-    /// Priority: same col, closest row (lower y = front), then adjacent cols.
-    /// </summary>
     BattleHero FindTarget(BattleHero attacker)
     {
         var enemies = attacker.team == 0 ? _enemyHeroes : _playerHeroes;
@@ -224,9 +213,8 @@ public class BattleController : MonoBehaviour
         {
             if (!enemy.isAlive) continue;
 
-            // Score: prefer same column, then closer row (front line)
             int colDist = Mathf.Abs(attacker.gridX - enemy.gridX);
-            int rowPriority = enemy.gridY; // lower y = front row = higher priority
+            int rowPriority = enemy.gridY;
 
             int score = rowPriority * 10 + colDist;
 
@@ -264,9 +252,6 @@ public class BattleController : MonoBehaviour
         if (OnBattleEnd != null) OnBattleEnd(winner, _roundCount);
     }
 
-    /// <summary>
-    /// Convenience: load enemy formation by ID and start battle.
-    /// </summary>
     public void StartBattleWithFormation(int formationId)
     {
         var table = GameTableLoader.LoadEnemyFormationsFromResources("Tables/enemy_formations");

@@ -36,6 +36,7 @@ public class BoardSetup : MonoBehaviour
     void CreateBoard()
     {
         int gs = BoardController.GridSize;
+        int start = BoardController.GridStartIndex;
         float totalW = gs * cellSize + (gs + 1) * spacing;
         float totalH = gs * cellSize + (gs + 1) * spacing;
 
@@ -46,17 +47,23 @@ public class BoardSetup : MonoBehaviour
         var bg = panel.AddComponent<Image>();
         bg.color = new Color(0.08f, 0.08f, 0.12f, 0.85f);
 
-        for (int x = 0; x < gs; x++)
-            for (int y = 0; y < gs; y++)
+        for (int ix = 0; ix < gs; ix++)
+            for (int iy = 0; iy < gs; iy++)
+            {
+                int x = start + ix;
+                int y = start + iy;
                 CreateCell(x, y, totalW, totalH);
+            }
     }
 
     void CreateCell(int x, int y, float panelW, float panelH)
     {
+        int ix = x - BoardController.GridStartIndex;
+        int iy = y - BoardController.GridStartIndex;
         float startX = -panelW / 2f + spacing + cellSize / 2f;
         float startY = panelH / 2f - spacing - cellSize / 2f;
-        float posX = startX + x * (cellSize + spacing);
-        float posY = startY - y * (cellSize + spacing);
+        float posX = startX + ix * (cellSize + spacing);
+        float posY = startY - iy * (cellSize + spacing);
 
         var cellGO = MakeUI("Cell_" + x + "_" + y, boardPanel);
         var crt = cellGO.GetComponent<RectTransform>();
@@ -121,6 +128,55 @@ public class BoardSetup : MonoBehaviour
         costTxt.fontStyle = FontStyles.Bold; costTxt.alignment = TextAlignmentOptions.Center;
         costTxt.color = Color.white;
 
+        // === Progress Bars Root ===
+        var barsRoot = MakeUI("Bars", cellGO.transform);
+        var barsRt = barsRoot.GetComponent<RectTransform>();
+        barsRt.anchorMin = new Vector2(0, 0); barsRt.anchorMax = new Vector2(1, 0.12f);
+        barsRt.offsetMin = Vector2.zero; barsRt.offsetMax = Vector2.zero;
+        barsRoot.SetActive(false);
+
+        // HP Bar Background
+        var hpBgGO = MakeUI("HPBarBg", barsRoot.transform);
+        var hpBgRt = hpBgGO.GetComponent<RectTransform>();
+        hpBgRt.anchorMin = new Vector2(0, 0.55f); hpBgRt.anchorMax = new Vector2(1, 1);
+        hpBgRt.offsetMin = new Vector2(4, 1); hpBgRt.offsetMax = new Vector2(-4, -1);
+        var hpBgImg = hpBgGO.AddComponent<Image>();
+        hpBgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+
+        // HP Bar Fill
+        var hpFillGO = MakeUI("HPBarFill", hpBgGO.transform);
+        var hpFillRt = hpFillGO.GetComponent<RectTransform>();
+        hpFillRt.anchorMin = new Vector2(0, 0); hpFillRt.anchorMax = new Vector2(1, 1);
+        hpFillRt.offsetMin = Vector2.zero; hpFillRt.offsetMax = Vector2.zero;
+        hpFillRt.pivot = new Vector2(0, 0.5f);
+        var hpFillImg = hpFillGO.AddComponent<Image>();
+        hpFillImg.type = Image.Type.Filled;
+        hpFillImg.fillMethod = Image.FillMethod.Horizontal;
+        hpFillImg.fillOrigin = 0;
+        hpFillImg.fillAmount = 1f;
+        hpFillImg.color = new Color(0.2f, 0.8f, 0.2f);
+
+        // ATK Bar Background
+        var atkBgGO = MakeUI("ATKBarBg", barsRoot.transform);
+        var atkBgRt = atkBgGO.GetComponent<RectTransform>();
+        atkBgRt.anchorMin = new Vector2(0, 0); atkBgRt.anchorMax = new Vector2(1, 0.45f);
+        atkBgRt.offsetMin = new Vector2(4, 1); atkBgRt.offsetMax = new Vector2(-4, -1);
+        var atkBgImg = atkBgGO.AddComponent<Image>();
+        atkBgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+
+        // ATK Bar Fill
+        var atkFillGO = MakeUI("ATKBarFill", atkBgGO.transform);
+        var atkFillRt = atkFillGO.GetComponent<RectTransform>();
+        atkFillRt.anchorMin = new Vector2(0, 0); atkFillRt.anchorMax = new Vector2(1, 1);
+        atkFillRt.offsetMin = Vector2.zero; atkFillRt.offsetMax = Vector2.zero;
+        atkFillRt.pivot = new Vector2(0, 0.5f);
+        var atkFillImg = atkFillGO.AddComponent<Image>();
+        atkFillImg.type = Image.Type.Filled;
+        atkFillImg.fillMethod = Image.FillMethod.Horizontal;
+        atkFillImg.fillOrigin = 0;
+        atkFillImg.fillAmount = 1f;
+        atkFillImg.color = new Color(0.2f, 0.5f, 1f);
+
         // CellSlot
         var slot = cellGO.AddComponent<CellSlot>();
         slot.gridX = x; slot.gridY = y;
@@ -132,6 +188,9 @@ public class BoardSetup : MonoBehaviour
         slot.heroStatsText = statTxt;
         slot.heroCostBadge = badgeImg;
         slot.heroCostText = costTxt;
+        slot.hpBarFill = hpFillImg;
+        slot.atkBarFill = atkFillImg;
+        slot.barsRoot = barsRoot;
 
         // HeroOnBoard
         var hob = cellGO.AddComponent<HeroOnBoard>();

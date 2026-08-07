@@ -31,6 +31,9 @@ public class GameManager : MonoBehaviour
     int _battleResultWinner = -1;
     int _pendingFormationId = 1;
 
+    static readonly int GRID_START = BoardController.GridStartIndex;
+    static readonly int GRID_END = BoardController.GridStartIndex + BoardController.GridSize;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -147,8 +150,8 @@ public class GameManager : MonoBehaviour
         if (heroes.Count == 0) return;
         var hero = heroes[Random.Range(0, heroes.Count)];
         bool placed = false;
-        for (int x = 0; x < 3 && !placed; x++)
-            for (int y = 0; y < 3 && !placed; y++)
+        for (int x = GRID_START; x < GRID_END && !placed; x++)
+            for (int y = GRID_START; y < GRID_END && !placed; y++)
                 if (bc.IsCellEmpty(x, y) && bc.CanPlaceHero(hero.id))
                 {
                     bc.PlaceHero(x, y, hero.id);
@@ -156,39 +159,54 @@ public class GameManager : MonoBehaviour
                     if (cell != null) { var hob = cell.GetComponent<HeroOnBoard>(); if (hob != null) hob.Init(hero.id, x, y); }
                     placed = true;
                 }
-        _message = placed ? "Free Hero: " + hero.name + " joined!" : "Free Hero: " + hero.name + " but no space!";
+        _message = placed ? "Free hero: " + hero.name + "!" : "Board full, can't receive.";
     }
 
+    void AdvanceRound()
+    {
+        Round++;
+        if (Round > ROUNDS_PER_DAY) { Round = 1; Day++; _message = "Day " + Day + " begins!"; }
+        CurrentState = State.Placement;
+        RefreshGameUI();
+        Debug.Log("[GameManager] Day=" + Day + " Round=" + Round);
+    }
+
+    bool IsBattleRound(int r) { return r == PVE_ROUND || r == PVP_ROUND; }
+
+    // ========== EVENTS UI ==========
     void DrawEventUI()
     {
-        GUILayout.Label("Event: " + _currentEvent);
-        switch (_currentEvent)
+        if (_currentEvent == EventType.Shop)
         {
-            case EventType.Shop: DrawShop(); break;
-            default:
-                if (GUILayout.Button("Continue", GUILayout.Height(36))) AdvanceRound();
-                break;
+            GUILayout.Label("Shop - Pick one hero:");
+            for (int i = 0; i < _shopHeroes.Count; i++)
+            {
+                var hero = _shopHeroes[i];
+                string label = "[" + hero.cost + "] " + hero.name + "  HP:" + hero.hp + " ATK:" + hero.atk;
+                if (GUILayout.Button(label, GUILayout.Height(30)))
+                {
+                    ChooseShopHero(i);
+                }
+            }
+            if (GUILayout.Button("Skip", GUILayout.Height(30))) { _message = "Skipped shop."; AdvanceRound(); }
+        }
+        else if (_currentEvent == EventType.FreeHero)
+        {
+            GUILayout.Label(_message);
+            if (GUILayout.Button("Continue", GUILayout.Height(30))) AdvanceRound();
+        }
+        else
+        {
+            GUILayout.Label(_message);
+            if (GUILayout.Button("Continue", GUILayout.Height(30))) AdvanceRound();
         }
     }
 
-    void DrawShop()
+    void ChooseShopHero(int index)
     {
-        for (int i = 0; i < _shopHeroes.Count; i++)
-        {
-            var hero = _shopHeroes[i];
-            bool can = BoardController.Instance != null && BoardController.Instance.CanPlaceHero(hero.id);
-            GUI.enabled = can;
-            GUI.backgroundColor = can ? new Color(0.2f, 0.4f, 0.2f) : new Color(0.4f, 0.15f, 0.15f);
-            string label = "[" + hero.cost + "] " + hero.name + "  " + hero.job + "  HP:" + hero.hp + "  ATK:" + hero.atk;
-            if (GUILayout.Button(label, GUILayout.Height(32)))
-            {
-                _pickedShopIndex = i;
-                PlaceShopHero(hero);
-            }
-            GUI.backgroundColor = Color.white;
-            GUI.enabled = true;
-        }
-        if (GUILayout.Button("Skip (buy nothing)", GUILayout.Height(30))) { _message = "Skipped shop."; AdvanceRound(); }
+        if (index < 0 || index >= _shopHeroes.Count) return;
+        PlaceShopHero(_shopHeroes[index]);
+        AdvanceRound();
     }
 
     void PlaceShopHero(HeroRow hero)
@@ -196,8 +214,8 @@ public class GameManager : MonoBehaviour
         var bc = BoardController.Instance;
         if (bc == null) return;
         bool placed = false;
-        for (int x = 0; x < 3 && !placed; x++)
-            for (int y = 0; y < 3 && !placed; y++)
+        for (int x = GRID_START; x < GRID_END && !placed; x++)
+            for (int y = GRID_START; y < GRID_END && !placed; y++)
                 if (bc.IsCellEmpty(x, y) && bc.CanPlaceHero(hero.id))
                 {
                     bc.PlaceHero(x, y, hero.id);
@@ -209,8 +227,6 @@ public class GameManager : MonoBehaviour
     }
 
     // ========== BATTLE ==========
-    bool IsBattleRound(int r) { return r == PVE_ROUND || r == PVP_ROUND; }
-
     void DrawBattlePrepUI()
     {
         string type = Round == PVE_ROUND ? "PvE (Jungle)" : "PvP (Arena)";
@@ -279,17 +295,6 @@ public class GameManager : MonoBehaviour
         return count;
     }
 
-    // ========== ADVANCE ==========
-    void AdvanceRound()
-    {
-        Round++;
-        if (Round > ROUNDS_PER_DAY) { Round = 1; Day++; _message = "Day " + Day + " begins!"; }
-        CurrentState = State.Placement;
-        RefreshGameUI();
-        Debug.Log("[GameManager] Day=" + Day + " Round=" + Round);
-    }
-
-    // ========== GAME OVER ==========
     void DrawGameOverUI()
     {
         bool won = Crowns >= WIN_CROWNS;
