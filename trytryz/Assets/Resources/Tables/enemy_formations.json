@@ -1,157 +1,58 @@
-{
-  "list": [
-    {
-      "id": 1,
-      "formationId": 1,
-      "formationName": "野怪·小狼群",
-      "roundType": "pve",
-      "gridX": 1,
-      "gridY": 0,
-      "heroId": 1001
-    },
-    {
-      "id": 2,
-      "formationId": 1,
-      "formationName": "野怪·小狼群",
-      "roundType": "pve",
-      "gridX": 1,
-      "gridY": 1,
-      "heroId": 1002
-    },
-    {
-      "id": 3,
-      "formationId": 1,
-      "formationName": "野怪·小狼群",
-      "roundType": "pve",
-      "gridX": 1,
-      "gridY": 2,
-      "heroId": 1011
-    },
-    {
-      "id": 4,
-      "formationId": 2,
-      "formationName": "竞技·王国均衡阵",
-      "roundType": "pvp",
-      "gridX": 0,
-      "gridY": 0,
-      "heroId": 1005
-    },
-    {
-      "id": 5,
-      "formationId": 2,
-      "formationName": "竞技·王国均衡阵",
-      "roundType": "pvp",
-      "gridX": 0,
-      "gridY": 1,
-      "heroId": 1001
-    },
-    {
-      "id": 6,
-      "formationId": 2,
-      "formationName": "竞技·王国均衡阵",
-      "roundType": "pvp",
-      "gridX": 0,
-      "gridY": 2,
-      "heroId": 1006
-    },
-    {
-      "id": 7,
-      "formationId": 2,
-      "formationName": "竞技·王国均衡阵",
-      "roundType": "pvp",
-      "gridX": 1,
-      "gridY": 0,
-      "heroId": 1007
-    },
-    {
-      "id": 8,
-      "formationId": 2,
-      "formationName": "竞技·王国均衡阵",
-      "roundType": "pvp",
-      "gridX": 1,
-      "gridY": 2,
-      "heroId": 1010
-    },
-    {
-      "id": 9,
-      "formationId": 3,
-      "formationName": "竞技·兽人突袭",
-      "roundType": "pvp",
-      "gridX": 0,
-      "gridY": 0,
-      "heroId": 1012
-    },
-    {
-      "id": 10,
-      "formationId": 3,
-      "formationName": "竞技·兽人突袭",
-      "roundType": "pvp",
-      "gridX": 0,
-      "gridY": 1,
-      "heroId": 1016
-    },
-    {
-      "id": 11,
-      "formationId": 3,
-      "formationName": "竞技·兽人突袭",
-      "roundType": "pvp",
-      "gridX": 0,
-      "gridY": 2,
-      "heroId": 1018
-    },
-    {
-      "id": 12,
-      "formationId": 3,
-      "formationName": "竞技·兽人突袭",
-      "roundType": "pvp",
-      "gridX": 1,
-      "gridY": 1,
-      "heroId": 1004
-    },
-    {
-      "id": 13,
-      "formationId": 4,
-      "formationName": "野怪·巨兽守护",
-      "roundType": "pve",
-      "gridX": 0,
-      "gridY": 0,
-      "heroId": 1012
-    },
-    {
-      "id": 14,
-      "formationId": 4,
-      "formationName": "野怪·巨兽守护",
-      "roundType": "pve",
-      "gridX": 0,
-      "gridY": 2,
-      "heroId": 1018
-    },
-    {
-      "id": 15,
-      "formationId": 4,
-      "formationName": "野怪·巨兽守护",
-      "roundType": "pve",
-      "gridX": 1,
-      "gridY": 0,
-      "heroId": 1008
-    },
-    {
-      "id": 16,
-      "formationId": 4,
-      "formationName": "野怪·巨兽守护",
-      "roundType": "pve",
-      "gridX": 1,
-      "gridY": 2,
-      "heroId": 1005
-    },
-    {
-      "id": 17,
-      "formationId": 4,
-      "formationName": "野怪·巨兽守护",
-      "roundType": "pve",
-      "gridX": 2,
-      "gridY": 1,
-      "heroId": 1006
-    }
-  ]
+﻿{
+    "list": [
+        {
+            "id": 1,
+            "formationId": 1,
+            "formationName": "野怪·小狼群",
+            "roundType": "pve",
+            "gridX": 1,
+            "gridY": 0,
+            "heroId": 10012
+        },
+        {
+            "id": 2,
+            "formationId": 1,
+            "formationName": "野怪·小狼群",
+            "roundType": "pve",
+            "gridX": 1,
+            "gridY": 1,
+            "heroId": 10061
+        },
+        {
+            "id": 3,
+            "formationId": 1,
+            "formationName": "野怪·小狼群",
+            "roundType": "pve",
+            "gridX": 2,
+            "gridY": 1,
+            "heroId": 10012
+        },
+        {
+            "id": 4,
+            "formationId": 2,
+            "formationName": "New Formation",
+            "roundType": "pvp",
+            "gridX": 0,
+            "gridY": 1,
+            "heroId": 10012
+        },
+        {
+            "id": 5,
+            "formationId": 2,
+            "formationName": "New Formation",
+            "roundType": "pvp",
+            "gridX": 1,
+            "gridY": 0,
+            "heroId": 10101
+        },
+        {
+            "id": 6,
+            "formationId": 2,
+            "formationName": "New Formation",
+            "roundType": "pvp",
+            "gridX": 1,
+            "gridY": 1,
+            "heroId": 10101
+        }
+    ]
 }

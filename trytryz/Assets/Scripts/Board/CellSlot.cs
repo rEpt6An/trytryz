@@ -1,169 +1,109 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
+/// <summary>
+/// 棋盘格：只负责格子的背景 / 高亮 / 坐标提示 / 点击交互。
+/// 随从实体（FollowerEntity）作为子物体挂在格子上，由 BoardController 管理。
+/// 每帧自动刷新，放置/拖拽/战斗期间 UI 始终即时更新。
+/// </summary>
 public class CellSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public int gridX;
     public int gridY;
+    public bool isEnemy;
 
     public Image background;
     public Image highlightBorder;
     public TextMeshProUGUI infoText;
-    public GameObject heroCardRoot;
-    public TextMeshProUGUI heroNameText;
-    public TextMeshProUGUI heroStatsText;
-    public Image heroCostBadge;
-    public TextMeshProUGUI heroCostText;
 
-    [Header("Progress Bars")]
-    public Image hpBarFill;
-    public Image atkBarFill;
-    public GameObject barsRoot;
+    /// <summary>当前格子上的随从实体（子物体）。</summary>
+    public FollowerEntity Occupant { get; private set; }
 
-    Color _defaultBgColor = new Color(0.18f, 0.18f, 0.22f, 0.9f);
-    Color _hoverBgColor = new Color(0.28f, 0.28f, 0.35f, 0.95f);
-    Color _occupiedBgColor = new Color(0.15f, 0.25f, 0.15f, 0.9f);
+    bool _hovered;
 
-    Color[] _costColors = {
-        new Color(0.3f, 0.5f, 0.3f),
-        new Color(0.3f, 0.35f, 0.7f),
-        new Color(0.7f, 0.35f, 0.7f),
-        new Color(0.8f, 0.55f, 0.2f),
-    };
-
-    HeroOnBoard _heroOnBoard;
+    Color _defaultBg = new Color(0.18f, 0.18f, 0.22f, 0.9f);
+    Color _hoverBg = new Color(0.28f, 0.28f, 0.35f, 0.95f);
+    Color _occupiedBg = new Color(0.16f, 0.26f, 0.16f, 0.9f);
+    Color _enemyBg = new Color(0.24f, 0.13f, 0.13f, 0.9f);
 
     void Start()
     {
-        _heroOnBoard = GetComponent<HeroOnBoard>();
-
         if (BoardController.Instance != null)
-            BoardController.Instance.RegisterCell(gridX, gridY, this);
-
-        if (highlightBorder != null)
-            highlightBorder.gameObject.SetActive(false);
-
-        if (barsRoot != null)
-            barsRoot.SetActive(false);
-
-        UpdateDisplay();
+            BoardController.Instance.RegisterCell(this);
     }
 
     void OnEnable()
     {
         if (BoardController.Instance != null)
-            BoardController.Instance.OnBoardChanged += UpdateDisplay;
+            BoardController.Instance.RegisterCell(this);
     }
 
     void OnDisable()
     {
         if (BoardController.Instance != null)
-            BoardController.Instance.OnBoardChanged -= UpdateDisplay;
+            BoardController.Instance.UnregisterCell(this);
     }
 
     void Update()
     {
-        UpdateProgressBars();
+        Refresh();
+        // 战斗中每帧实时刷新；战斗外仅在数据变化时刷新（不干扰玩家拖拽血条 Slider）
+        if (Occupant != null && (Occupant.InBattle || Occupant.VisualsDirty)) Occupant.RefreshVisuals();
     }
 
-    public void UpdateDisplay()
+    /// <summary>每帧刷新：占用状态 / 高亮 / 坐标提示 / 背景色。</summary>
+    public void Refresh()
     {
-        if (BoardController.Instance == null) return;
+        Occupant = GetComponentInChildren<FollowerEntity>();
+        bool occupied = Occupant != null && Occupant.FollowerId != 0;
 
-        int heroId = BoardController.Instance.GetHeroAt(gridX, gridY);
-
-        if (heroId == 0)
-        {
-            background.color = _defaultBgColor;
-            if (infoText != null)
-                infoText.text = "[" + gridX + "," + gridY + "]";
-            if (heroCardRoot != null)
-                heroCardRoot.SetActive(false);
-            if (barsRoot != null)
-                barsRoot.SetActive(false);
-        }
-        else
-        {
-            var hero = BoardController.Instance.GetHeroData(heroId);
-            if (hero != null)
-            {
-                background.color = _occupiedBgColor;
-                if (infoText != null) infoText.text = "";
-                if (heroCardRoot != null) heroCardRoot.SetActive(true);
-                if (heroNameText != null) heroNameText.text = hero.name;
-                if (heroStatsText != null) heroStatsText.text = "HP:" + hero.hp + "  ATK:" + hero.atk;
-                if (heroCostBadge != null)
-                {
-                    int idx = Mathf.Clamp(hero.cost - 1, 0, _costColors.Length - 1);
-                    heroCostBadge.color = _costColors[idx];
-                }
-                if (heroCostText != null) heroCostText.text = hero.cost.ToString();
-                if (barsRoot != null)
-                    barsRoot.SetActive(true);
-            }
-        }
-    }
-
-    void UpdateProgressBars()
-    {
-        if (_heroOnBoard == null) return;
-        if (_heroOnBoard.HeroId == 0) return;
-
-        // HP bar
-        if (hpBarFill != null && _heroOnBoard.MaxHp > 0)
-        {
-            float hpRatio = Mathf.Clamp01((float)_heroOnBoard.CurrentHp / _heroOnBoard.MaxHp);
-            hpBarFill.fillAmount = hpRatio;
-            if (hpRatio > 0.6f)
-                hpBarFill.color = new Color(0.2f, 0.8f, 0.2f);
-            else if (hpRatio > 0.3f)
-                hpBarFill.color = new Color(1f, 0.85f, 0.2f);
-            else
-                hpBarFill.color = new Color(1f, 0.25f, 0.25f);
-        }
-
-        // ATK bar (placeholder - will be driven by battle system later)
-        if (atkBarFill != null)
-        {
-            // For now, show full (battle system will control this)
-            atkBarFill.fillAmount = 1f;
-        }
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (BoardController.Instance == null) return;
-
-        if (eventData.button == PointerEventData.InputButton.Right)
-        {
-            if (BoardController.Instance.GetHeroAt(gridX, gridY) != 0)
-                BoardController.Instance.RemoveHero(gridX, gridY);
-        }
-        else if (eventData.button == PointerEventData.InputButton.Left)
-        {
-            if (BoardController.Instance.IsCellEmpty(gridX, gridY))
-            {
-                if (HeroPicker.Instance != null)
-                    HeroPicker.Instance.OpenForCell(gridX, gridY);
-            }
-        }
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
         if (highlightBorder != null)
-            highlightBorder.gameObject.SetActive(true);
+            highlightBorder.gameObject.SetActive(_hovered);
 
-        if (BoardController.Instance != null && BoardController.Instance.IsCellEmpty(gridX, gridY))
-            background.color = _hoverBgColor;
+        if (infoText != null)
+        {
+            infoText.gameObject.SetActive(!occupied && !_hovered);
+            if (!occupied) infoText.text = "[" + gridX + "," + gridY + "]";
+        }
+
+        if (background != null)
+        {
+            if (occupied) background.color = isEnemy ? _enemyBg : _occupiedBg;
+            else if (_hovered) background.color = _hoverBg;
+            else background.color = _defaultBg;
+        }
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    public void OnPointerClick(PointerEventData e)
     {
-        if (highlightBorder != null)
-            highlightBorder.gameObject.SetActive(false);
-        UpdateDisplay();
+        if (isEnemy) return;
+        var bc = BattleController.Instance;
+        if (bc != null && bc.State == BattleController.BattleState.Running) return;
+
+        if (e.button == PointerEventData.InputButton.Right)
+        {
+            if (BoardController.Instance != null)
+                BoardController.Instance.RemoveFollower(gridX, gridY);
+        }
+        else if (e.button == PointerEventData.InputButton.Left)
+        {
+            Refresh();
+            if (Occupant == null && HeroPicker.Instance != null)
+                HeroPicker.Instance.OpenForCell(gridX, gridY);
+        }
+    }
+
+    public void OnPointerEnter(PointerEventData e)
+    {
+        _hovered = true;
+        Refresh();
+    }
+
+    public void OnPointerExit(PointerEventData e)
+    {
+        _hovered = false;
+        Refresh();
     }
 }

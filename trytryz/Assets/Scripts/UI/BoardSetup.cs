@@ -1,234 +1,83 @@
-using TMPro;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 战斗棋盘装配：直接实例化 Resources/Prefabs 下的 BoardPanel 与 EnemyBoardPanel 预制体
+/// （每个格子是 Cell_of_Board 的嵌套实例，坐标已序列化在面板预制体里）。
+/// </summary>
 public class BoardSetup : MonoBehaviour
 {
-    [Header("Layout")]
-    public float cellSize = 160f;
-    public float spacing = 10f;
-
     [Header("References")]
     public BoardController boardController;
-    public Transform boardPanel;
+
+    const string PLAYER_BOARD_PREFAB = "Prefabs/BoardPanel";
+    const string ENEMY_BOARD_PREFAB = "Prefabs/EnemyBoardPanel";
 
     void Awake()
     {
         if (boardController == null)
             boardController = FindObjectOfType<BoardController>();
 
-        var existingCells = GetComponentsInChildren<CellSlot>();
-        if (existingCells != null && existingCells.Length == 9)
+        // 清理旧版运行时面板（含场景里遗留的 BoardPanel/EnemyBoardPanel 实例）
+        Transform oldP = transform.Find("BoardPanel");
+        if (oldP != null) DestroyImmediate(oldP.gameObject);
+        Transform oldE = transform.Find("EnemyBoardPanel");
+        if (oldE != null) DestroyImmediate(oldE.gameObject);
+
+        InstantiateBoard(PLAYER_BOARD_PREFAB, "BoardPanel", false);
+        InstantiateBoard(ENEMY_BOARD_PREFAB, "EnemyBoardPanel", true);
+        Debug.Log("[BoardSetup] Boards instantiated from prefabs: BoardPanel + EnemyBoardPanel (mirrored).");
+    }
+
+    void InstantiateBoard(string prefabPath, string panelName, bool enemy)
+    {
+        GameObject prefab = Resources.Load<GameObject>(prefabPath);
+        if (prefab == null)
         {
-            Debug.Log("[BoardSetup] Manual mode: found " + existingCells.Length + " existing cells.");
-            foreach (var cell in existingCells)
-            {
-                if (BoardController.Instance != null)
-                    BoardController.Instance.RegisterCell(cell.gridX, cell.gridY, cell);
-            }
+            Debug.LogError("[BoardSetup] Prefab not found: " + prefabPath);
             return;
         }
 
-        Debug.Log("[BoardSetup] Auto mode: creating board at runtime.");
-        CreateBoard();
+        GameObject panel = Instantiate(prefab, transform, false);
+        panel.name = panelName;
+
+        var slots = panel.GetComponentsInChildren<CellSlot>();
+        bool needCoords = false;
+        foreach (var slot in slots)
+        {
+            slot.isEnemy = enemy;
+            // 容错：若预制体里未保存坐标，按格子在面板内的物理位置推算
+            if (slot.gridX == 0 || slot.gridY == 0) needCoords = true;
+        }
+        if (needCoords) AssignGridCoords(new List<CellSlot>(slots), enemy);
     }
 
-    void CreateBoard()
+    /// <summary>
+    /// 按物理位置（左上 → 右下）给格子补坐标。
+    /// 我方：左 → 右列号 1,2,3；敌方：左右镜像，左 → 右列号 3,2,1（显示列 3 靠玩家侧）。
+    /// </summary>
+    static void AssignGridCoords(List<CellSlot> slots, bool enemy)
     {
+        var list = new List<CellSlot>(slots);
+        list.Sort((a, b) =>
+        {
+            var ra = (RectTransform)a.transform;
+            var rb = (RectTransform)b.transform;
+            int cy = rb.anchoredPosition.y.CompareTo(ra.anchoredPosition.y); // 从上到下
+            if (cy != 0) return cy;
+            return ra.anchoredPosition.x.CompareTo(rb.anchoredPosition.x);   // 从左到右
+        });
         int gs = BoardController.GridSize;
-        int start = BoardController.GridStartIndex;
-        float totalW = gs * cellSize + (gs + 1) * spacing;
-        float totalH = gs * cellSize + (gs + 1) * spacing;
-
-        var panel = MakeUI("BoardPanel", transform);
-        boardPanel = panel.transform;
-        var prt = panel.GetComponent<RectTransform>();
-        prt.sizeDelta = new Vector2(totalW, totalH);
-        var bg = panel.AddComponent<Image>();
-        bg.color = new Color(0.08f, 0.08f, 0.12f, 0.85f);
-
-        for (int ix = 0; ix < gs; ix++)
-            for (int iy = 0; iy < gs; iy++)
-            {
-                int x = start + ix;
-                int y = start + iy;
-                CreateCell(x, y, totalW, totalH);
-            }
-    }
-
-    void CreateCell(int x, int y, float panelW, float panelH)
-    {
-        int ix = x - BoardController.GridStartIndex;
-        int iy = y - BoardController.GridStartIndex;
-        float startX = -panelW / 2f + spacing + cellSize / 2f;
-        float startY = panelH / 2f - spacing - cellSize / 2f;
-        float posX = startX + ix * (cellSize + spacing);
-        float posY = startY - iy * (cellSize + spacing);
-
-        var cellGO = MakeUI("Cell_" + x + "_" + y, boardPanel);
-        var crt = cellGO.GetComponent<RectTransform>();
-        crt.sizeDelta = new Vector2(cellSize, cellSize);
-        crt.anchoredPosition = new Vector2(posX, posY);
-
-        var bg = cellGO.AddComponent<Image>();
-        bg.color = new Color(0.18f, 0.18f, 0.22f, 0.9f);
-
-        // Highlight
-        var hlGO = MakeUI("Highlight", cellGO.transform);
-        Stretch(hlGO.GetComponent<RectTransform>());
-        var hlImg = hlGO.AddComponent<Image>();
-        hlImg.color = new Color(1f, 0.85f, 0.2f, 0.4f);
-        hlImg.raycastTarget = false;
-
-        // Info text
-        var infoGO = MakeUI("InfoText", cellGO.transform);
-        StretchMargin(infoGO.GetComponent<RectTransform>(), 4);
-        var infoTxt = infoGO.AddComponent<TextMeshProUGUI>();
-        infoTxt.text = "[" + x + "," + y + "]";
-        infoTxt.font = GetTMPFont();
-        infoTxt.fontSize = 14;
-        infoTxt.alignment = TextAlignmentOptions.Center;
-        infoTxt.color = new Color(0.6f, 0.6f, 0.65f);
-
-        // Hero card
-        var cardRoot = MakeUI("HeroCard", cellGO.transform);
-        StretchMargin(cardRoot.GetComponent<RectTransform>(), 6);
-        cardRoot.SetActive(false);
-
-        var nameGO = MakeUI("Name", cardRoot.transform);
-        var nrt = nameGO.GetComponent<RectTransform>();
-        nrt.anchorMin = new Vector2(0, 0.55f); nrt.anchorMax = new Vector2(1, 0.95f);
-        nrt.offsetMin = Vector2.zero; nrt.offsetMax = Vector2.zero;
-        var nameTxt = nameGO.AddComponent<TextMeshProUGUI>();
-        nameTxt.font = GetTMPFont(); nameTxt.fontSize = 20;
-        nameTxt.fontStyle = FontStyles.Bold; nameTxt.alignment = TextAlignmentOptions.Center;
-        nameTxt.color = Color.white;
-
-        var statGO = MakeUI("Stats", cardRoot.transform);
-        var srt = statGO.GetComponent<RectTransform>();
-        srt.anchorMin = new Vector2(0, 0.15f); srt.anchorMax = new Vector2(1, 0.55f);
-        srt.offsetMin = Vector2.zero; srt.offsetMax = Vector2.zero;
-        var statTxt = statGO.AddComponent<TextMeshProUGUI>();
-        statTxt.font = GetTMPFont(); statTxt.fontSize = 14;
-        statTxt.alignment = TextAlignmentOptions.Center;
-        statTxt.color = new Color(0.85f, 0.85f, 0.85f);
-
-        var badgeGO = MakeUI("CostBadge", cardRoot.transform);
-        var brt = badgeGO.GetComponent<RectTransform>();
-        brt.anchorMin = new Vector2(1, 1); brt.anchorMax = new Vector2(1, 1);
-        brt.pivot = new Vector2(1, 1); brt.sizeDelta = new Vector2(28, 28);
-        brt.anchoredPosition = new Vector2(-4, -4);
-        var badgeImg = badgeGO.AddComponent<Image>();
-        badgeImg.color = new Color(0.3f, 0.5f, 0.3f);
-
-        var costGO = MakeUI("CostText", badgeGO.transform);
-        Stretch(costGO.GetComponent<RectTransform>());
-        var costTxt = costGO.AddComponent<TextMeshProUGUI>();
-        costTxt.font = GetTMPFont(); costTxt.fontSize = 16;
-        costTxt.fontStyle = FontStyles.Bold; costTxt.alignment = TextAlignmentOptions.Center;
-        costTxt.color = Color.white;
-
-        // === Progress Bars Root ===
-        var barsRoot = MakeUI("Bars", cellGO.transform);
-        var barsRt = barsRoot.GetComponent<RectTransform>();
-        barsRt.anchorMin = new Vector2(0, 0); barsRt.anchorMax = new Vector2(1, 0.12f);
-        barsRt.offsetMin = Vector2.zero; barsRt.offsetMax = Vector2.zero;
-        barsRoot.SetActive(false);
-
-        // HP Bar Background
-        var hpBgGO = MakeUI("HPBarBg", barsRoot.transform);
-        var hpBgRt = hpBgGO.GetComponent<RectTransform>();
-        hpBgRt.anchorMin = new Vector2(0, 0.55f); hpBgRt.anchorMax = new Vector2(1, 1);
-        hpBgRt.offsetMin = new Vector2(4, 1); hpBgRt.offsetMax = new Vector2(-4, -1);
-        var hpBgImg = hpBgGO.AddComponent<Image>();
-        hpBgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
-
-        // HP Bar Fill
-        var hpFillGO = MakeUI("HPBarFill", hpBgGO.transform);
-        var hpFillRt = hpFillGO.GetComponent<RectTransform>();
-        hpFillRt.anchorMin = new Vector2(0, 0); hpFillRt.anchorMax = new Vector2(1, 1);
-        hpFillRt.offsetMin = Vector2.zero; hpFillRt.offsetMax = Vector2.zero;
-        hpFillRt.pivot = new Vector2(0, 0.5f);
-        var hpFillImg = hpFillGO.AddComponent<Image>();
-        hpFillImg.type = Image.Type.Filled;
-        hpFillImg.fillMethod = Image.FillMethod.Horizontal;
-        hpFillImg.fillOrigin = 0;
-        hpFillImg.fillAmount = 1f;
-        hpFillImg.color = new Color(0.2f, 0.8f, 0.2f);
-
-        // ATK Bar Background
-        var atkBgGO = MakeUI("ATKBarBg", barsRoot.transform);
-        var atkBgRt = atkBgGO.GetComponent<RectTransform>();
-        atkBgRt.anchorMin = new Vector2(0, 0); atkBgRt.anchorMax = new Vector2(1, 0.45f);
-        atkBgRt.offsetMin = new Vector2(4, 1); atkBgRt.offsetMax = new Vector2(-4, -1);
-        var atkBgImg = atkBgGO.AddComponent<Image>();
-        atkBgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
-
-        // ATK Bar Fill
-        var atkFillGO = MakeUI("ATKBarFill", atkBgGO.transform);
-        var atkFillRt = atkFillGO.GetComponent<RectTransform>();
-        atkFillRt.anchorMin = new Vector2(0, 0); atkFillRt.anchorMax = new Vector2(1, 1);
-        atkFillRt.offsetMin = Vector2.zero; atkFillRt.offsetMax = Vector2.zero;
-        atkFillRt.pivot = new Vector2(0, 0.5f);
-        var atkFillImg = atkFillGO.AddComponent<Image>();
-        atkFillImg.type = Image.Type.Filled;
-        atkFillImg.fillMethod = Image.FillMethod.Horizontal;
-        atkFillImg.fillOrigin = 0;
-        atkFillImg.fillAmount = 1f;
-        atkFillImg.color = new Color(0.2f, 0.5f, 1f);
-
-        // CellSlot
-        var slot = cellGO.AddComponent<CellSlot>();
-        slot.gridX = x; slot.gridY = y;
-        slot.background = bg;
-        slot.highlightBorder = hlImg;
-        slot.infoText = infoTxt;
-        slot.heroCardRoot = cardRoot;
-        slot.heroNameText = nameTxt;
-        slot.heroStatsText = statTxt;
-        slot.heroCostBadge = badgeImg;
-        slot.heroCostText = costTxt;
-        slot.hpBarFill = hpFillImg;
-        slot.atkBarFill = atkFillImg;
-        slot.barsRoot = barsRoot;
-
-        // HeroOnBoard
-        var hob = cellGO.AddComponent<HeroOnBoard>();
-        hob.Init(0, x, y);
-    }
-
-    GameObject MakeUI(string name, Transform parent)
-    {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        go.transform.localScale = Vector3.one;
-        return go;
-    }
-
-    void Stretch(RectTransform rt)
-    {
-        rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
-    }
-
-    void StretchMargin(RectTransform rt, float m)
-    {
-        rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-        rt.offsetMin = new Vector2(m, m); rt.offsetMax = new Vector2(-m, -m);
-    }
-
-    TMP_FontAsset GetTMPFont()
-    {
-        TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts & Materials/KaiTi SDF");
-        if (font != null) return font;
-        font = TMPro.TMP_Settings.defaultFontAsset;
-        if (font != null) return font;
-        Debug.LogWarning("[BoardSetup] KaiTi SDF not found and no TMP default. Text will be invisible.");
-        return null;
-    }
-
-    public void BuildInEditor()
-    {
-        CreateBoard();
+        for (int i = 0; i < list.Count; i++)
+        {
+            int col = i % gs;
+            int x = enemy
+                ? (BoardController.GridStartIndex + (gs - 1 - col))
+                : (BoardController.GridStartIndex + col);
+            int y = i / gs + BoardController.GridStartIndex;
+            list[i].gridX = x;
+            list[i].gridY = y;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// Drop exported .json into Resources or reference as TextAsset, then load at runtime.
@@ -10,7 +10,7 @@ public static class GameTableLoader
     {
         if (asset == null || string.IsNullOrEmpty(asset.text))
             return null;
-        return JsonUtility.FromJson<ItemTable>(asset.text);
+        return JsonUtility.FromJson<ItemTable>(StripBom(asset.text));
     }
 
     public static ItemTable LoadItemsFromResources(string pathWithoutExtension)
@@ -24,7 +24,7 @@ public static class GameTableLoader
     {
         if (asset == null || string.IsNullOrEmpty(asset.text))
             return null;
-        return JsonUtility.FromJson<HeroTable>(asset.text);
+        return JsonUtility.FromJson<HeroTable>(StripBom(asset.text));
     }
 
     public static HeroTable LoadHeroesFromResources(string pathWithoutExtension)
@@ -38,7 +38,13 @@ public static class GameTableLoader
     {
         if (asset == null || string.IsNullOrEmpty(asset.text))
             return null;
-        return JsonUtility.FromJson<EnemyFormationTable>(asset.text);
+        return JsonUtility.FromJson<EnemyFormationTable>(StripBom(asset.text));
+    }
+
+    /// <summary>去掉 UTF-8 BOM，避免 JsonUtility 解析失败。</summary>
+    static string StripBom(string text)
+    {
+        return text.Length > 0 && text[0] == '\uFEFF' ? text.Substring(1) : text;
     }
 
     public static EnemyFormationTable LoadEnemyFormationsFromResources(string pathWithoutExtension)

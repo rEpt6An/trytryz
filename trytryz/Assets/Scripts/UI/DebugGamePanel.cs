@@ -1,6 +1,8 @@
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
+/// <summary>
+/// 调试面板（F1）：人口/上帝模式/随机上阵/清空/刷新。
+/// </summary>
 public class DebugGamePanel : MonoBehaviour
 {
     bool _showPanel = true;
@@ -10,11 +12,8 @@ public class DebugGamePanel : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F1))
-            _showPanel = !_showPanel;
-
-        if (BoardController.Instance != null)
-            _popSliderValue = BoardController.Instance.MaxPopulation;
+        if (Input.GetKeyDown(KeyCode.F1)) _showPanel = !_showPanel;
+        if (BoardController.Instance != null) _popSliderValue = BoardController.Instance.MaxPopulation;
     }
 
     void OnGUI()
@@ -26,120 +25,61 @@ public class DebugGamePanel : MonoBehaviour
     void DrawDebugWindow(int id)
     {
         var bc = BoardController.Instance;
-        if (bc == null)
-        {
-            GUILayout.Label("BoardController not found.");
-            GUI.DragWindow();
-            return;
-        }
+        if (bc == null) { GUILayout.Label("BoardController not found."); GUI.DragWindow(); return; }
 
         GUILayout.Label("Pop: " + bc.CurrentPopulation + " / " + bc.MaxPopulation);
         GUILayout.Label("God Mode: " + (bc.GodMode ? "ON" : "OFF"));
         GUILayout.Space(6);
 
-        // God mode toggle
         GUI.backgroundColor = bc.GodMode ? Color.green : Color.gray;
         if (GUILayout.Button(bc.GodMode ? "God Mode: ON" : "God Mode: OFF", GUILayout.Height(30)))
-        {
             bc.GodMode = !bc.GodMode;
-        }
         GUI.backgroundColor = Color.white;
         GUILayout.Space(6);
 
-        // Pop slider
         GUILayout.Label("Max Pop: " + _popSliderValue);
         _popSliderValue = (int)GUILayout.HorizontalSlider(_popSliderValue, 1, 15);
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Apply", GUILayout.Width(100)))
-        {
-            bc.MaxPopulation = _popSliderValue;
-            _statusMsg = "Max pop set to " + _popSliderValue;
-            bc.RefreshDisplay();
-        }
-        GUILayout.Space(10);
-        _popSliderValue = bc.MaxPopulation;
+        { bc.MaxPopulation = _popSliderValue; _statusMsg = "Max pop set to " + _popSliderValue; bc.RefreshDisplay(); }
+        GUILayout.Space(10); _popSliderValue = bc.MaxPopulation;
         GUILayout.EndHorizontal();
         GUILayout.Space(6);
 
-        // Quick actions
-        GUILayout.Label("-- Game --");
         var gm = GameManager.Instance;
         if (gm != null)
-        {
             GUILayout.Label("D" + gm.Day + " R" + gm.Round + "  HP:" + gm.Hp + "  Crowns:" + gm.Crowns);
-        }
         GUILayout.Space(4);
+
         GUILayout.Label("-- Quick Actions --");
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Clear Board", GUILayout.Height(30)))
-        {
-            bc.ClearBoard();
-            _statusMsg = "Board cleared";
-        }
-        if (GUILayout.Button("Fill Random", GUILayout.Height(30)))
-        {
-            bc.FillBoardWithRandom();
-            _statusMsg = "Board filled";
-        }
+        if (GUILayout.Button("Clear Board", GUILayout.Height(30))) { bc.ClearBoard(); _statusMsg = "Board cleared"; }
+        if (GUILayout.Button("Fill Random", GUILayout.Height(30))) { bc.FillBoardWithRandom(); _statusMsg = "Board filled"; }
         GUILayout.EndHorizontal();
-
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Open Hero List", GUILayout.Height(30)))
-        {
-            if (HeroPicker.Instance != null)
-                HeroPicker.Instance.OpenForCell(1, 1);
-            _statusMsg = "Hero picker opened";
-        }
-        if (GUILayout.Button("Refresh UI", GUILayout.Height(30)))
-        {
-            bc.RefreshDisplay();
-            _statusMsg = "UI refreshed";
-        }
-        GUILayout.EndHorizontal();
-
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Battle UI (F2)", GUILayout.Height(30)))
-        {
-            _statusMsg = "Press F2 to open Battle UI";
-        }
+        if (GUILayout.Button("Open Follower List", GUILayout.Height(30)))
+        { if (HeroPicker.Instance != null) HeroPicker.Instance.OpenForCell(1, 1); _statusMsg = "Follower picker opened"; }
+        if (GUILayout.Button("Refresh UI", GUILayout.Height(30))) { bc.RefreshDisplay(); _statusMsg = "UI refreshed"; }
         GUILayout.EndHorizontal();
         GUILayout.Space(6);
 
-        // Board snapshot (1-based display)
         GUILayout.Label("-- Board Snapshot --");
-        int start = BoardController.GridStartIndex;
-        int end = start + BoardController.GridSize;
-        for (int y = start; y < end; y++)
+        int s = BoardController.GridStartIndex, e = s + BoardController.GridSize;
+        for (int y = s; y < e; y++)
         {
             GUILayout.BeginHorizontal();
-            for (int x = start; x < end; x++)
+            for (int x = s; x < e; x++)
             {
-                int heroId = bc.GetHeroAt(x, y);
-                string label;
-                if (heroId == 0)
-                    label = "[ ]";
-                else
-                {
-                    var hero = bc.GetHeroData(heroId);
-                    label = hero != null ? hero.name : "#" + heroId;
-                }
+                var entity = bc.GetFollowerAt(x, y);
+                string label = entity == null ? "[ ]" : (entity.Data != null ? entity.Data.name : "#" + entity.FollowerId);
                 GUILayout.Label(label, GUILayout.Width(85));
             }
             GUILayout.EndHorizontal();
         }
         GUILayout.Space(6);
-
-        if (!string.IsNullOrEmpty(_statusMsg))
-            GUILayout.Label(_statusMsg);
-
+        if (!string.IsNullOrEmpty(_statusMsg)) GUILayout.Label(_statusMsg);
         GUI.DragWindow();
     }
 
-    void OnEnable()
-    {
-        if (BoardController.Instance != null)
-            _popSliderValue = BoardController.Instance.MaxPopulation;
-        else
-            _popSliderValue = 5;
-    }
+    void OnEnable() { _popSliderValue = BoardController.Instance != null ? BoardController.Instance.MaxPopulation : 5; }
 }
